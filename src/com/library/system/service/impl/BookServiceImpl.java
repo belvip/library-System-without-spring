@@ -39,7 +39,7 @@ public class BookServiceImpl implements BookService {
     // Méthode pour récupérer tous les livres disponibles
     @Override
     public void displayAvailableBooks() {
-        String query = "SELECT * FROM books WHERE number_of_copies > 0";
+        String query = "SELECT * FROM book WHERE numberofcopies > 0";
 
         try (Connection connection = DatabaseConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement(query);
@@ -59,7 +59,7 @@ public class BookServiceImpl implements BookService {
     // Méthode pour vérifier la disponibilité d'un livre
     @Override
     public boolean isAvailable(Book book) {
-        String query = "SELECT number_of_copies FROM books WHERE id = ?";
+        String query = "SELECT numberofcopies FROM book WHERE id = ?";
 
         try (Connection connection = DatabaseConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement(query)) {
@@ -83,7 +83,7 @@ public class BookServiceImpl implements BookService {
     @Override
     public List<Book> searchByTitle(String title) {
         List<Book> books = new ArrayList<>();
-        String query = "SELECT * FROM books WHERE title LIKE ?";
+        String query = "SELECT * FROM book WHERE title LIKE ?";
 
         try (Connection connection = DatabaseConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement(query)) {
@@ -109,9 +109,9 @@ public class BookServiceImpl implements BookService {
     @Override
     public List<Book> searchByAuthor(String authorName) {
         List<Book> books = new ArrayList<>();
-        String query = "SELECT b.* FROM books b " +
-                "JOIN book_authors ba ON b.id = ba.book_id " +
-                "JOIN authors a ON ba.author_id = a.id " +
+        String query = "SELECT b.* FROM book b " +
+                "JOIN book_author ba ON b.id = ba.bookid " +
+                "JOIN author a ON ba.authorid = a.id " +
                 "WHERE a.name LIKE ?";
 
         try (Connection connection = DatabaseConnection.getConnection();
@@ -138,9 +138,9 @@ public class BookServiceImpl implements BookService {
     @Override
     public List<Book> searchByCategory(String category) {
         List<Book> books = new ArrayList<>();
-        String query = "SELECT b.* FROM books b " +
-                "JOIN book_categories bc ON b.id = bc.book_id " +
-                "JOIN categories c ON bc.category_id = c.id " +
+        String query = "SELECT b.* FROM book b " +
+                "JOIN books_category bc ON b.id = bc.bookid " +
+                "JOIN category c ON bc.categoryid = c.id " +
                 "WHERE c.name LIKE ?";
 
         try (Connection connection = DatabaseConnection.getConnection();
@@ -148,6 +148,7 @@ public class BookServiceImpl implements BookService {
 
             statement.setString(1, "%" + category + "%");
             ResultSet resultSet = statement.executeQuery();
+
 
             while (resultSet.next()) {
                 int id = resultSet.getInt("id");
@@ -166,11 +167,11 @@ public class BookServiceImpl implements BookService {
     @Override
     public List<Book> searchByKeywords(String keywords) {
         List<Book> books = new ArrayList<>();
-        String query = "SELECT b.* FROM books b " +
-                "JOIN book_authors ba ON b.id = ba.book_id " +
-                "JOIN authors a ON ba.author_id = a.id " +
-                "JOIN book_categories bc ON b.id = bc.book_id " +
-                "JOIN categories c ON bc.category_id = c.id " +
+        String query = "SELECT b.* FROM book b " +
+                "JOIN book_author ba ON b.id = ba.bookid " +
+                "JOIN author a ON ba.authorid = a.id " +
+                "JOIN books_category bc ON b.id = bc.bookid " +
+                "JOIN category c ON bc.categoryid = c.id " +
                 "WHERE b.title LIKE ? OR a.name LIKE ? OR c.name LIKE ?";
 
         try (Connection connection = DatabaseConnection.getConnection();
