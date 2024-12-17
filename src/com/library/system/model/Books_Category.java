@@ -30,5 +30,5 @@ public class Books_Category {
         this.categoryId = categoryId;
     }
 
-    // Méthodes supplémentaires si nécessaires
+
 }

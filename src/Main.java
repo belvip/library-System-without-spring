@@ -1,4 +1,5 @@
 import com.library.system.util.DatabaseConnection;
+import com.library.system.util.DatabaseTableCreator;
 
 import java.sql.Connection;
 
@@ -14,5 +15,7 @@ public class Main {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        DatabaseTableCreator.createTables();
+
     }
 }
