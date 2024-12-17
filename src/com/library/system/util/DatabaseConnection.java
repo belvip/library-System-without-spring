@@ -3,6 +3,8 @@ package com.library.system.util;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.HashSet;
+import java.util.Set;
 
 public class DatabaseConnection {
 
@@ -22,5 +24,8 @@ public class DatabaseConnection {
         } catch (ClassNotFoundException e) {
             throw new SQLException("PostgreSQL JDBC Driver is missing", e);
         }
+
+        //private Set<Author> authors = new HashSet<>(); // Un livre peut avoir plusieurs auteurs
+        //private Set<Category> categories = new HashSet<>(); // Un livre peut appartenir à plusieurs catégories
     }
 }
