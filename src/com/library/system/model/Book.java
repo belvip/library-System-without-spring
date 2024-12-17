@@ -82,7 +82,7 @@ public class Book {
     }
 
     public void setAuthors(Set<Author> authors) {
-        // Validation complexe sur les auteurs
+        // Validation complexe sur les auteurs bien
         if (authors == null || authors.isEmpty()) {
             throw new IllegalArgumentException("Le livre doit avoir au moins un auteur.");
         }
@@ -102,4 +102,34 @@ public class Book {
     public boolean isAvailable() {
         return numberOfCopies > 0;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder authorsList = new StringBuilder();
+        for (Author author : authors) {
+            authorsList.append(author.getFirstName()).append(" ").append(author.getLastName()).append(", ");
+        }
+        // Enlever la dernière virgule et l'espace
+        if (authorsList.length() > 0) {
+            authorsList.setLength(authorsList.length() - 2);
+        }
+
+        StringBuilder categoriesList = new StringBuilder();
+        for (Category category : categories) {
+            categoriesList.append(category.getName()).append(", ");
+        }
+        // Enlever la dernière virgule et l'espace
+        if (categoriesList.length() > 0) {
+            categoriesList.setLength(categoriesList.length() - 2);
+        }
+
+        return "Book{" +
+                "id=" + id +
+                ", title='" + title + '\'' +
+                ", numberOfCopies=" + numberOfCopies +
+                ", authors=[" + authorsList.toString() + "]" +
+                ", categories=[" + categoriesList.toString() + "]" +
+                '}';
+    }
+
 }
