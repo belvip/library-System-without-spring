@@ -25,7 +25,5 @@ public class DatabaseConnection {
             throw new SQLException("PostgreSQL JDBC Driver is missing", e);
         }
 
-        //private Set<Author> authors = new HashSet<>(); // Un livre peut avoir plusieurs auteurs
-        //private Set<Category> categories = new HashSet<>(); // Un livre peut appartenir à plusieurs catégories
     }
 }

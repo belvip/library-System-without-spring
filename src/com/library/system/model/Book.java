@@ -53,7 +53,7 @@ public class Book {
             throw new IllegalArgumentException("Le titre ne doit pas commencer par un espace.");
         }
 
-        if (title.split("\\s+").length < 2) {
+        if (title.split("\\s+").length < 1) {
             throw new IllegalArgumentException("Le titre doit contenir au moins deux mots.");
         }
 

@@ -4,7 +4,7 @@ import com.library.system.model.Book;
 import java.util.List;
 
 public interface BookService {
-    void addBook(Book book);
+    boolean addBook(Book book);
     void updateBook(Book book);
     void removeBook(int bookId);
     List<Book> searchByTitle(String title);
@@ -13,5 +13,6 @@ public interface BookService {
     List<Book> searchByKeywords(String keywords);
     void displayAvailableBooks(); // Afficher les livres disponibles
     boolean isAvailable(Book book); // Vérifier la disponibilité d'un livre
+
 
 }

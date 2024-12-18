@@ -14,9 +14,10 @@ public class BookServiceImpl implements BookService {
     private List<Book> books = new ArrayList<>();
 
     @Override
-    public void addBook(Book book) {
+    public boolean addBook(Book book) {
         books.add(book); // Ajouter à la liste des livres
         System.out.println("Book added: " + book.getTitle());
+        return false;
     }
 
     @Override
@@ -32,8 +33,22 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public void removeBook(int bookId) {
-        books.removeIf(b -> b.getId() == bookId);
-        System.out.println("Book removed with ID: " + bookId);
+        String query = "DELETE FROM \"book\" WHERE id = ?";
+
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(query)) {
+
+            statement.setInt(1, bookId);
+            int rowsAffected = statement.executeUpdate();
+
+            if (rowsAffected > 0) {
+                System.out.println("Le livre avec l'ID " + bookId + " a été supprimé.");
+            } else {
+                System.out.println("Aucun livre trouvé avec l'ID " + bookId + ".");
+            }
+        } catch (Exception e) {
+            System.err.println("Erreur lors de la suppression du livre : " + e.getMessage());
+        }
     }
 
     // Méthode pour récupérer tous les livres disponibles
