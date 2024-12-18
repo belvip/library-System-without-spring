@@ -82,6 +82,7 @@ public class ConsoleHandler {
     }
 
     /* ^^^^^^^^^^^^^^^^^^^^^^^ Ajouter un livre ^^^^^^^^^^^^^^^^^^^^^^^ */
+
     private void addBook() {
         scanner.nextLine(); // Consommer la ligne restante
 
