@@ -5,6 +5,7 @@ import java.util.List;
 
 public interface BookService {
     boolean addBook(Book book);
+    boolean addBookWithRelations(Book book, String[] authors, String[] categories);
     void updateBook(Book book);
     void removeBook(int bookId);
     List<Book> searchByTitle(String title);

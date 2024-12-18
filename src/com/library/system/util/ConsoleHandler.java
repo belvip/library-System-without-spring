@@ -1,7 +1,14 @@
 package com.library.system.util;
 
+import com.library.system.dao.BookDAO;
+import com.library.system.dao.impl.BookDAOImpl;  // Implémentation BookDAO
+import com.library.system.dao.AuthorDAO;
+import com.library.system.dao.impl.AuthorDAOImpl;  // Assurez-vous d'importer AuthorDAOImpl
+import com.library.system.dao.CategoryDAO;
+import com.library.system.dao.impl.CategoryDAOImpl;  // Implémentation CategoryDAO
+import com.library.system.dao.BooksCategoryDAO;
+import com.library.system.dao.impl.BooksCategoryDAOImpl;  // Implémentation BooksCategoryDAO
 import com.library.system.model.Book;
-import com.library.system.service.BookService;
 import com.library.system.service.impl.BookServiceImpl;
 
 import java.util.InputMismatchException;
@@ -9,11 +16,18 @@ import java.util.Scanner;
 
 public class ConsoleHandler {
     private final Scanner scanner = new Scanner(System.in);
-    private final BookService bookService;
+    private final BookServiceImpl bookService;  // Gardez uniquement cette ligne
 
     public ConsoleHandler() {
-        this.bookService = new BookServiceImpl(); // Injection du service
-    }
+        // Créez les instances nécessaires pour BookServiceImpl
+        BookDAO bookDAO = new BookDAOImpl();  // Utilisez BookDAOImpl
+        AuthorDAO authorDAO = new AuthorDAOImpl();  // Utilisez AuthorDAOImpl
+        CategoryDAO categoryDAO = new CategoryDAOImpl();  // Utilisez CategoryDAOImpl
+        BooksCategoryDAO booksCategoryDAO = new BooksCategoryDAOImpl();  // Utilisez BooksCategoryDAOImpl
+
+        // Passez ces instances au constructeur de BookServiceImpl
+        this.bookService = new BookServiceImpl(bookDAO, authorDAO, categoryDAO, booksCategoryDAO);
+    }  // <-- Ajoutez cette accolade fermante pour le constructeur
 
     public void start() {
         boolean running = true;
@@ -70,21 +84,34 @@ public class ConsoleHandler {
     /* ^^^^^^^^^^^^^^^^^^^^^^^ Ajouter un livre ^^^^^^^^^^^^^^^^^^^^^^^ */
     private void addBook() {
         scanner.nextLine(); // Consommer la ligne restante
+
         System.out.println("\n=== Ajouter un nouveau livre ===");
         System.out.print("Titre du livre : ");
         String title = scanner.nextLine();
 
         System.out.print("Nombre de copies : ");
         int numberOfCopies = scanner.nextInt();
+        scanner.nextLine(); // Consommer la ligne restante
 
-        // Créer un nouvel objet Book
-        Book newBook = new Book();
-        newBook.setTitle(title);
-        newBook.setNumberOfCopies(numberOfCopies);
+        System.out.print("Entrez les auteurs (séparés par une virgule) : ");
+        String authorsInput = scanner.nextLine();
+        String[] authors = authorsInput.split(",");
 
-        // Appeler la méthode avec l'objet Book
-        bookService.addBook(newBook);
-        System.out.println("Livre ajouté avec succès !");
+        System.out.print("Entrez les catégories (séparées par une virgule) : ");
+        String categoriesInput = scanner.nextLine();
+        String[] categories = categoriesInput.split(",");
+
+        // Créer le livre sans spécifier l'ID
+        Book newBook = new Book(title, numberOfCopies);
+
+        // Ajouter le livre dans le service (ID sera géré par la base de données)
+        boolean success = bookService.addBookWithRelations(newBook, authors, categories);
+
+        if (success) {
+            System.out.println("Livre ajouté avec succès !");
+        } else {
+            System.out.println("Erreur lors de l'ajout du livre.");
+        }
     }
 
 
@@ -102,11 +129,9 @@ public class ConsoleHandler {
         System.out.print("Nouveau nombre de copies : ");
         int newCopies = scanner.nextInt();
 
-        // Créer un objet Book avec les nouvelles informations
-        Book updatedBook = new Book();
-        updatedBook.setId(id);
-        updatedBook.setTitle(newTitle);
-        updatedBook.setNumberOfCopies(newCopies);
+        // Créer un objet Book avec le constructeur existant
+        Book updatedBook = new Book(newTitle, newCopies);  // Utilisation du constructeur avec title et numberOfCopies
+        updatedBook.setId(id);  // Définir l'ID via le setter
 
         // Appeler la méthode avec l'objet Book
         bookService.updateBook(updatedBook);
@@ -128,5 +153,4 @@ public class ConsoleHandler {
         System.out.println("\n=== Liste des livres disponibles ===");
         bookService.displayAvailableBooks(); // Appel de la méthode correcte
     }
-
 }

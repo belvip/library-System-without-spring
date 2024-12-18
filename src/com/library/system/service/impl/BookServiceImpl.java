@@ -1,5 +1,11 @@
 package com.library.system.service.impl;
 
+import com.library.system.dao.*;
+import com.library.system.dao.impl.AuthorDAOImpl;
+import com.library.system.dao.impl.BookDAOImpl;
+import com.library.system.dao.impl.BooksCategoryDAOImpl;
+import com.library.system.dao.impl.CategoryDAOImpl;
+import com.library.system.model.Author;
 import com.library.system.model.Book;
 import com.library.system.service.BookService;
 import com.library.system.util.DatabaseConnection;
@@ -12,6 +18,31 @@ public class BookServiceImpl implements BookService {
 
     // Déclarez la collection books
     private List<Book> books = new ArrayList<>();
+    private final AuthorDAO authorDAO;
+    private final CategoryDAO categoryDAO;
+    private final BookDAO bookDAO;
+    //private BookDAO bookDAO = new BookDAO();
+    private final BookAuthorDAO bookAuthorDAO = new BookAuthorDAO();
+    
+
+    private final BooksCategoryDAO booksCategoryDAO;
+
+    // Constructeur sans arguments
+    public BookServiceImpl() {
+        this.bookDAO = new BookDAOImpl();  // Remplace BookDAO par BookDAOImpl
+        this.authorDAO = new AuthorDAOImpl();  // Remplace AuthorDAO par AuthorDAOImpl
+        this.categoryDAO = new CategoryDAOImpl();  // Remplace CategoryDAO par CategoryDAOImpl
+        this.booksCategoryDAO = new BooksCategoryDAOImpl();  // Remplace BooksCategoryDAO par BooksCategoryDAOImpl
+    }
+
+
+    public BookServiceImpl(BookDAO bookDAO, AuthorDAO authorDAO, CategoryDAO categoryDAO, BooksCategoryDAO booksCategoryDAO) {
+        this.bookDAO = bookDAO;
+        this.authorDAO = authorDAO;
+        this.categoryDAO = categoryDAO;
+        this.booksCategoryDAO = booksCategoryDAO;
+    }
+
 
     @Override
     public boolean addBook(Book book) {
@@ -19,6 +50,39 @@ public class BookServiceImpl implements BookService {
         System.out.println("Book added: " + book.getTitle());
         return false;
     }
+
+    @Override
+    public boolean addBookWithRelations(Book book, String[] authors, String[] categories) {
+        try (Connection connection = DatabaseConnection.getConnection()) {
+            connection.setAutoCommit(false);
+
+            // Ajouter le livre
+            int bookId = bookDAO.addBook(book, connection);
+
+            // Ajouter les auteurs et les relations
+            for (String authorName : authors) {
+                Author author = authorDAO.getOrCreateAuthor(authorName.trim(), connection); // Retourne un objet Author
+                int authorId = author.getId(); // Récupérer l'ID de l'auteur
+
+                bookAuthorDAO.addBookAuthorRelation(bookId, authorId, connection);
+            }
+
+            // Ajouter les catégories et les relations
+            for (String categoryName : categories) {
+                int categoryId = categoryDAO.getOrCreateCategory(categoryName.trim(), connection);
+                booksCategoryDAO.addBookCategoryRelation(bookId, categoryId, connection);
+            }
+
+            connection.commit();
+            return true;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+
 
     @Override
     public void updateBook(Book book) {
