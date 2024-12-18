@@ -72,15 +72,21 @@ public class Book {
         if (authors == null || authors.isEmpty()) {
             throw new IllegalArgumentException("Le livre doit avoir au moins un auteur.");
         }
-        this.authors = authors;
+        this.authors = authors;  // Assigner directement le Set d'auteurs à l'attribut 'authors'
     }
+
+
+    public void setCategories(Set<Category> categories) {
+        if (categories == null || categories.isEmpty()) {
+            throw new IllegalArgumentException("Le livre doit avoir au moins une catégorie.");
+        }
+        this.categories = categories;  // Assigner directement le Set de catégories à l'attribut 'categories'
+    }
+
+
 
     public Set<Category> getCategories() {
         return categories;
-    }
-
-    public void setCategories(Set<Category> categories) {
-        this.categories = categories;
     }
 
     // Méthodes
