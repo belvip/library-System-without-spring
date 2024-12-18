@@ -25,7 +25,7 @@ public class Main {
         }
         DatabaseTableCreator.createTables();
 
-        // Démarrer l'interaction avec l'utilisateur via ConsoleHandler
+        //Démarrer l'interaction avec l'utilisateur via ConsoleHandler
         consoleHandler.start();
 
 
