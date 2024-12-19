@@ -36,7 +36,7 @@ public class Category {
         }
 
         // Regex pour vérifier que le nom de la catégorie contient uniquement des lettres et des espaces
-        if (!category_name.matches("[a-zA-Z ]+")) {
+        if (!category_name.matches("[a-zA-Z]+")) {
             throw new IllegalArgumentException("Le nom de la catégorie ne peut contenir que des lettres et des espaces.");
         }
 

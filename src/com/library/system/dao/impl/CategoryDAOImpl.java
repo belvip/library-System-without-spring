@@ -53,10 +53,22 @@ public class CategoryDAOImpl implements CategoryDAO {
             ResultSet rs = stmt.executeQuery();
 
             while (rs.next()) {
-                categories.add(new Category(rs.getInt("category_id"), rs.getString("category_name")));
+                int categoryId = rs.getInt("category_id");
+                String categoryName = rs.getString("category_name");
+
+                try {
+                    // Tenter d'utiliser setName ou le constructeur
+                    categories.add(new Category(categoryId, categoryName));
+                } catch (IllegalArgumentException e) {
+                    //System.err.println("Nom invalide détecté dans la base de données : " + categoryName);
+                    // Ajouter une catégorie par défaut ou ignorer
+                    categories.add(new Category(categoryId, "CategorieDefaut"));
+                }
             }
         }
 
         return categories;
     }
+
+
 }
