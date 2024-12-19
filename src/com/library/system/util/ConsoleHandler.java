@@ -15,6 +15,7 @@ import com.library.system.service.BookService;
 import com.library.system.service.impl.BookServiceImpl;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.InputMismatchException;
 import java.util.Scanner;
@@ -23,24 +24,40 @@ import java.util.Set;
 public class ConsoleHandler {
     private final Scanner scanner = new Scanner(System.in);
     private final BookService bookService;
+    private Connection connection;
+    private final AuthorDAO authorDAO;
+    private final CategoryDAO categoryDAO;
 
     public ConsoleHandler(Connection connection) {
+
         // Instanciez les DAO avec la connexion
         AuthorDAO authorDAO = new AuthorDAOImpl(connection);  // Créez l'instance de AuthorDAO
         BookDAO bookDAO = new BookDAOImpl(connection, authorDAO);  // Passez AuthorDAO au constructeur de BookDAOImpl
         CategoryDAO categoryDAO = new CategoryDAOImpl(connection);
         BooksCategoryDAO booksCategoryDAO = new BooksCategoryDAOImpl(connection);
+        this.categoryDAO = new CategoryDAOImpl(connection);
+        this.authorDAO = new AuthorDAOImpl(connection);
 
         // Passez les DAO au constructeur de BookServiceImpl
         this.bookService = new BookServiceImpl(bookDAO, authorDAO, categoryDAO, booksCategoryDAO);
+        this.connection = connection;
     }
 
 
     public void start() {
+        // Demandez à l'utilisateur de saisir une catégorie une fois
+        handleCategoryInput(connection);
+
+        // Demandez à l'utilisateur de saisir un auteur une fois
+        handleAuthorInput(connection);
+
+        // Boucle pour afficher le menu principal et traiter les choix
         boolean running = true;
         while (running) {
+            // Affichez le menu principal
             displayMenu();
             int choice = getChoiceInput();
+
             switch (choice) {
                 case 1:
                     addBook();
@@ -64,6 +81,7 @@ public class ConsoleHandler {
         }
     }
 
+
     private int getChoiceInput() {
         try {
             return scanner.nextInt();
@@ -73,6 +91,49 @@ public class ConsoleHandler {
             return -1; // Retourner une valeur invalide pour forcer le menu à réafficher
         }
     }
+
+    private void handleAuthorInput(Connection connection) {
+        Scanner scanner = new Scanner(System.in);
+
+        // Demander à l'utilisateur de saisir le prénom de l'auteur
+        System.out.println("Entrez le prénom de l'auteur : ");
+        String firstName = scanner.nextLine();
+
+        // Demander à l'utilisateur de saisir le nom de famille de l'auteur
+        System.out.println("Entrez le nom l'auteur :");
+        String lastName = scanner.nextLine();
+
+        // Demander à l'utilisateur de saisir le nom de famille de l'auteur
+        System.out.println("Entrez l'email :");
+        String email = scanner.nextLine();
+
+
+        try {
+            // Appel à la méthode getOrCreateAuthor avec les trois paramètres
+            Author author = authorDAO.getOrCreateAuthor(firstName, lastName, email);
+            System.out.println("Auteur récupéré ou créé : " + author.getAuthorId());
+        } catch (SQLException e) {
+            System.err.println("Erreur lors de la gestion de l'auteur : " + e.getMessage());
+        }
+    }
+
+
+    private void handleCategoryInput(Connection connection) {
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("Entrez le nom de la catégorie : ");
+        String categoryName = scanner.nextLine();
+
+        try {
+            // Ajoutez 'connection' comme argument pour l'appel de la méthode
+            Category category = categoryDAO.getOrCreateCategory(categoryName, connection);
+            System.out.println("Catégorie récupérée ou créée : " + category.getCategoryId());
+        } catch (SQLException e) {
+            System.err.println("Erreur lors de la gestion de la catégorie : " + e.getMessage());
+        }
+    }
+
+
+
 
     /* ^^^^^^^^^^^^^^^^^^^^^^^ Menu d'affichage ^^^^^^^^^^^^^^^^^^^^^^^ */
     private void displayMenu() {

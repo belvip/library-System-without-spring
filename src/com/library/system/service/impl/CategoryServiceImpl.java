@@ -20,7 +20,8 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public int getOrCreateCategory(String categoryName) {
         try (Connection connection = DatabaseConnection.getConnection()) {
-            return categoryDAO.getOrCreateCategory(categoryName, connection);
+            // Retourne l'ID de la catégorie (int) et non un objet Category
+            return categoryDAO.getOrCreateCategory(categoryName, connection).getCategoryId();
         } catch (SQLException e) {
             throw new RuntimeException("Erreur lors de la récupération ou de la création de la catégorie", e);
         }

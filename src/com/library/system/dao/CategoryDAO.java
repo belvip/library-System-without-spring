@@ -6,7 +6,7 @@ import java.sql.SQLException;
 import java.util.List;
 
 public interface CategoryDAO {
-    int getOrCreateCategory(String categoryName, Connection connection) throws SQLException;
+    Category getOrCreateCategory(String categoryName, Connection connection) throws SQLException;
 
     List<Category> getAllCategories(Connection connection) throws SQLException;
 }

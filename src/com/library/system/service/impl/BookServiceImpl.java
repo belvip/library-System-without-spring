@@ -6,6 +6,7 @@ import com.library.system.dao.impl.BookDAOImpl;
 import com.library.system.dao.impl.BooksCategoryDAOImpl;
 import com.library.system.dao.impl.CategoryDAOImpl;
 import com.library.system.model.Book;
+import com.library.system.model.Category;
 import com.library.system.service.BookService;
 import com.library.system.util.DatabaseConnection;
 
@@ -30,8 +31,9 @@ public class BookServiceImpl implements BookService {
         this.bookDAO = new BookDAOImpl(connection, authorDAO);  // Passez AuthorDAO au constructeur de BookDAOImpl
         this.categoryDAO = new CategoryDAOImpl(connection);
         this.booksCategoryDAO = new BooksCategoryDAOImpl(connection);
-    }
 
+
+    }
 
 
     public BookServiceImpl(BookDAO bookDAO, AuthorDAO authorDAO, CategoryDAO categoryDAO, BooksCategoryDAO booksCategoryDAO) {
@@ -63,8 +65,8 @@ public class BookServiceImpl implements BookService {
 
             // Ajouter les catégories et les relations
             for (String categoryName : categories) {
-                int categoryId = categoryDAO.getOrCreateCategory(categoryName.trim(), connection);
-                booksCategoryDAO.addBookCategoryRelation(bookId, categoryId, connection);
+                Category categoryId = categoryDAO.getOrCreateCategory(categoryName.trim(), connection);
+                booksCategoryDAO.addBookCategoryRelation(bookId, categoryId.getCategoryId(), connection);
             }
 
             connection.commit();

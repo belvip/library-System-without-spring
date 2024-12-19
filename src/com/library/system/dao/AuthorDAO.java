@@ -14,4 +14,6 @@ public interface AuthorDAO {
     Author findByEmail(String email);
 
     Author save(Author author) throws SQLException;
+
+
 }

@@ -16,6 +16,7 @@ public class AuthorDAOImpl implements AuthorDAO {
         this.connection = connection;
     }
 
+
     @Override
     public Author getOrCreateAuthor(String firstName, String lastName, String email) throws SQLException {
         // Requête SELECT pour vérifier si l'auteur existe déjà par email
@@ -31,9 +32,9 @@ public class AuthorDAOImpl implements AuthorDAO {
             // Si l'auteur existe déjà, le récupérer
             if (rs.next()) {
                 return new Author(
-                        rs.getInt("author_id"),  // Correction du nom de la colonne
-                        rs.getString("first_name"),  // Utilisation de first_name
-                        rs.getString("last_name"),  // Utilisation de last_name
+                        rs.getInt("author_id"),
+                        rs.getString("first_name"),
+                        rs.getString("last_name"),
                         rs.getString("email")
                 );
             } else {
@@ -46,23 +47,53 @@ public class AuthorDAOImpl implements AuthorDAO {
 
                     // Récupérer les données de l'auteur inséré
                     if (insertRs.next()) {
+                        int authorId = insertRs.getInt("author_id");
+                        if (authorId == 0) {
+                            throw new SQLException("L'insertion de l'auteur a échoué, ID égal à 0.");
+                        }
                         return new Author(
-                                insertRs.getInt("author_id"),  // Correction du nom de la colonne
+                                authorId,
                                 insertRs.getString("first_name"),
                                 insertRs.getString("last_name"),
                                 insertRs.getString("email")
                         );
+                    } else {
+                        throw new SQLException("L'insertion de l'auteur a échoué.");
                     }
                 }
             }
+        } catch (SQLException e) {
+            // Ajouter des logs ou afficher des messages d'erreur plus détaillés
+            System.err.println("Erreur lors de la récupération ou de la création de l'auteur : " + e.getMessage());
+            throw e;  // Propager l'exception
         }
-        throw new SQLException("Erreur lors de la récupération ou de la création de l'auteur.");
     }
+
 
     @Override
     public Author findByEmail(String email) {
-        return null;
+        String query = "SELECT * FROM author WHERE email = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setString(1, email);
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                return new Author(
+                        rs.getInt("author_id"),
+                        rs.getString("first_name"),
+                        rs.getString("last_name"),
+                        rs.getString("email")
+                );
+            } else {
+                return null;  // Aucun auteur trouvé
+            }
+        } catch (SQLException e) {
+            // Ajouter un log ou une gestion d'erreur pour l'exception
+            System.err.println("Erreur lors de la récupération de l'auteur : " + e.getMessage());
+            return null;
+        }
     }
+
 
     @Override
     public Author save(Author author) throws SQLException {

@@ -18,24 +18,31 @@ public class CategoryDAOImpl implements CategoryDAO {
     public CategoryDAOImpl(Connection connection) {
         this.connection = connection;
     }
+
     @Override
-    public int getOrCreateCategory(String categoryName, Connection connection) throws SQLException {
-        String query = "SELECT category_id FROM category WHERE category_name = ?";
-        String insertQuery = "INSERT INTO category (category_name) VALUES (?) RETURNING category_id";
+    public Category getOrCreateCategory(String categoryName, Connection connection) throws SQLException {
+        String query = "SELECT category_id, category_name FROM category WHERE category_name = ?";
+        String insertQuery = "INSERT INTO category (category_name) VALUES (?) RETURNING category_id, category_name";
 
         try (PreparedStatement selectStmt = connection.prepareStatement(query)) {
             selectStmt.setString(1, categoryName);
             ResultSet resultSet = selectStmt.executeQuery();
 
             if (resultSet.next()) {
-                return resultSet.getInt("category_id");
+                // Si la catégorie existe déjà, créez un objet Category
+                int categoryId = resultSet.getInt("category_id");
+                String name = resultSet.getString("category_name");
+                return new Category(categoryId, name); // Retourne un objet Category
             } else {
+                // Si la catégorie n'existe pas, insérez-la et récupérez l'ID
                 try (PreparedStatement insertStmt = connection.prepareStatement(insertQuery)) {
                     insertStmt.setString(1, categoryName);
                     ResultSet insertResult = insertStmt.executeQuery();
 
                     if (insertResult.next()) {
-                        return insertResult.getInt("category_id");
+                        int categoryId = insertResult.getInt("category_id");
+                        String name = insertResult.getString("category_name");
+                        return new Category(categoryId, name); // Retourne un objet Category
                     } else {
                         throw new SQLException("Insertion dans la table category a échoué.");
                     }
@@ -43,6 +50,7 @@ public class CategoryDAOImpl implements CategoryDAO {
             }
         }
     }
+
 
     @Override
     public List<Category> getAllCategories(Connection connection) throws SQLException {
