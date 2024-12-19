@@ -1,7 +1,7 @@
 package com.library.system.model;
 
 public class Author {
-    private int id;
+    private int authorId;
     private String firstName;
     private String lastName;
     private String email;
@@ -9,20 +9,26 @@ public class Author {
     // Constructeurs
     public Author() {}
 
-    public Author(int id, String firstName, String lastName, String email) {
-        this.id = id;
+    public Author(int authorId, String firstName, String lastName, String email) {
+        this.authorId = authorId;
         setFirstName(firstName);  // Validation du prénom
         setLastName(lastName);    // Validation du nom
         setEmail(email);          // Validation de l'email
     }
 
-    // Getters et Setters
-    public int getId() {
-        return id;
+    public Author(String firstName, String lastName, String email) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.email = email;
     }
 
-    public void setId(int id) {
-        this.id = id;
+    // Getters et Setters
+    public int getAuthorId() {
+        return authorId;
+    }
+
+    public void setAuthorId(int authorId) {
+        this.authorId = authorId;
     }
 
     public String getFirstName() {

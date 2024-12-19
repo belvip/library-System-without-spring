@@ -11,8 +11,10 @@ import com.library.system.dao.impl.BooksCategoryDAOImpl;  // Implémentation Boo
 import com.library.system.model.Author;
 import com.library.system.model.Book;
 import com.library.system.model.Category;
+import com.library.system.service.BookService;
 import com.library.system.service.impl.BookServiceImpl;
 
+import java.sql.Connection;
 import java.util.HashSet;
 import java.util.InputMismatchException;
 import java.util.Scanner;
@@ -20,18 +22,19 @@ import java.util.Set;
 
 public class ConsoleHandler {
     private final Scanner scanner = new Scanner(System.in);
-    private final BookServiceImpl bookService;  // Gardez uniquement cette ligne
+    private final BookService bookService;
 
-    public ConsoleHandler() {
-        // Créez les instances nécessaires pour BookServiceImpl
-        BookDAO bookDAO = new BookDAOImpl();  // Utilisez BookDAOImpl
-        AuthorDAO authorDAO = new AuthorDAOImpl();  // Utilisez AuthorDAOImpl
-        CategoryDAO categoryDAO = new CategoryDAOImpl();  // Utilisez CategoryDAOImpl
-        BooksCategoryDAO booksCategoryDAO = new BooksCategoryDAOImpl();  // Utilisez BooksCategoryDAOImpl
+    public ConsoleHandler(Connection connection) {
+        // Instanciez les DAO avec la connexion
+        AuthorDAO authorDAO = new AuthorDAOImpl(connection);  // Créez l'instance de AuthorDAO
+        BookDAO bookDAO = new BookDAOImpl(connection, authorDAO);  // Passez AuthorDAO au constructeur de BookDAOImpl
+        CategoryDAO categoryDAO = new CategoryDAOImpl(connection);
+        BooksCategoryDAO booksCategoryDAO = new BooksCategoryDAOImpl(connection);
 
-        // Passez ces instances au constructeur de BookServiceImpl
+        // Passez les DAO au constructeur de BookServiceImpl
         this.bookService = new BookServiceImpl(bookDAO, authorDAO, categoryDAO, booksCategoryDAO);
-    }  // <-- Ajoutez cette accolade fermante pour le constructeur
+    }
+
 
     public void start() {
         boolean running = true;
@@ -163,40 +166,45 @@ public class ConsoleHandler {
         }
     }
 
-    // Méthode pour parser les auteurs avec validation de l'email
     private Set<Author> parseAuthors(String authorsInput) {
         Set<Author> authorSet = new HashSet<>();
-        String[] authors = authorsInput.split(",");
+        String[] authors = authorsInput.split(","); // Diviser les auteurs par des virgules
 
         for (String authorInput : authors) {
-            String[] authorDetails = authorInput.trim().split(" ");  // Séparer prénom et nom
-            if (authorDetails.length == 2) {
-                String firstName = authorDetails[0];
-                String lastName = authorDetails[1];
+            authorInput = authorInput.trim(); // Nettoyage des espaces inutiles
+            if (!authorInput.isEmpty()) {
+                // Diviser par espace pour identifier le prénom et le nom
+                String[] authorDetails = authorInput.split(" ");
+                String firstName = authorDetails[0]; // Toujours prendre le premier comme prénom
+                String lastName = authorDetails.length > 1 ? authorDetails[1] : ""; // Nom facultatif
 
-                // Demander l'email pour chaque auteur avec validation
+                // Demander l'email pour chaque auteur
                 String email = "";
                 while (!isValidEmail(email)) {
-                    System.out.print("Entrez l'email de " + firstName + " " + lastName + ": ");
+                    System.out.print("Entrez l'email de " + firstName + (lastName.isEmpty() ? "" : " " + lastName) + ": ");
                     email = scanner.nextLine().trim();
                     if (!isValidEmail(email)) {
                         System.out.println("L'email " + email + " n'est pas valide. Essayez à nouveau.");
                     }
                 }
 
-                // Créer un nouvel objet Author
+                // Créer l'objet Author
                 Author author = new Author();
                 author.setFirstName(firstName);
-                author.setLastName(lastName);
+                author.setLastName(lastName); // Nom vide si non fourni
                 author.setEmail(email);
 
-                authorSet.add(author);  // Ajouter à l'ensemble des auteurs
+                // Ajouter à l'ensemble des auteurs
+                authorSet.add(author);
             } else {
-                System.out.println("Format d'auteur incorrect pour: " + authorInput);
+                System.out.println("Un auteur vide ou incorrect a été détecté.");
             }
         }
+
         return authorSet;
     }
+
+
 
     // Méthode pour valider un email
     private boolean isValidEmail(String email) {
@@ -233,7 +241,7 @@ public class ConsoleHandler {
 
         // Créer un objet Book avec le constructeur existant
         Book updatedBook = new Book(newTitle, newCopies);  // Utilisation du constructeur avec title et numberOfCopies
-        updatedBook.setId(id);  // Définir l'ID via le setter
+        updatedBook.setBookId(id);  // Définir l'ID via le setter
 
         // Appeler la méthode avec l'objet Book
         bookService.updateBook(updatedBook);

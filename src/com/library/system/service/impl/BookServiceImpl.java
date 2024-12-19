@@ -5,35 +5,33 @@ import com.library.system.dao.impl.AuthorDAOImpl;
 import com.library.system.dao.impl.BookDAOImpl;
 import com.library.system.dao.impl.BooksCategoryDAOImpl;
 import com.library.system.dao.impl.CategoryDAOImpl;
-import com.library.system.model.Author;
 import com.library.system.model.Book;
 import com.library.system.service.BookService;
 import com.library.system.util.DatabaseConnection;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class BookServiceImpl implements BookService {
 
     // Déclarez la collection books
     private List<Book> books = new ArrayList<>();
+    private final BookDAO bookDAO;
     private final AuthorDAO authorDAO;
     private final CategoryDAO categoryDAO;
-    private final BookDAO bookDAO;
-    //private BookDAO bookDAO = new BookDAO();
-    private final BookAuthorDAO bookAuthorDAO = new BookAuthorDAO();
-    
-
     private final BooksCategoryDAO booksCategoryDAO;
+    private final BookAuthorDAO bookAuthorDAO = new BookAuthorDAO();
 
-    // Constructeur sans arguments
-    public BookServiceImpl() {
-        this.bookDAO = new BookDAOImpl();  // Remplace BookDAO par BookDAOImpl
-        this.authorDAO = new AuthorDAOImpl();  // Remplace AuthorDAO par AuthorDAOImpl
-        this.categoryDAO = new CategoryDAOImpl();  // Remplace CategoryDAO par CategoryDAOImpl
-        this.booksCategoryDAO = new BooksCategoryDAOImpl();  // Remplace BooksCategoryDAO par BooksCategoryDAOImpl
+    // Constructeur alternatif avec une connexion
+    public BookServiceImpl(Connection connection) {
+        this.authorDAO = new AuthorDAOImpl(connection);  // Créez l'instance de AuthorDAO
+        this.bookDAO = new BookDAOImpl(connection, authorDAO);  // Passez AuthorDAO au constructeur de BookDAOImpl
+        this.categoryDAO = new CategoryDAOImpl(connection);
+        this.booksCategoryDAO = new BooksCategoryDAOImpl(connection);
     }
+
 
 
     public BookServiceImpl(BookDAO bookDAO, AuthorDAO authorDAO, CategoryDAO categoryDAO, BooksCategoryDAO booksCategoryDAO) {
@@ -60,12 +58,8 @@ public class BookServiceImpl implements BookService {
             int bookId = bookDAO.addBook(book, connection);
 
             // Ajouter les auteurs et les relations
-            for (String authorName : authors) {
-                Author author = authorDAO.getOrCreateAuthor(authorName.trim(), connection); // Retourne un objet Author
-                int authorId = author.getId(); // Récupérer l'ID de l'auteur
-
-                bookAuthorDAO.addBookAuthorRelation(bookId, authorId, connection);
-            }
+            List<String> authorNames = Arrays.asList(authors);
+            bookDAO.addBookWithAuthors(book, authorNames);  // Utilisation de la méthode addBookWithAuthors
 
             // Ajouter les catégories et les relations
             for (String categoryName : categories) {
@@ -83,11 +77,10 @@ public class BookServiceImpl implements BookService {
     }
 
 
-
     @Override
     public void updateBook(Book book) {
         for (Book b : books) {
-            if (b.getId() == book.getId()) {
+            if (b.getBookId() == book.getBookId()) {
                 b.setTitle(book.getTitle());
                 b.setNumberOfCopies(book.getNumberOfCopies());
                 System.out.println("Book updated: " + book.getTitle());
@@ -97,7 +90,7 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public void removeBook(int bookId) {
-        String query = "DELETE FROM \"book\" WHERE id = ?";
+        String query = "DELETE FROM \"book\" WHERE book_id = ?";
 
         try (Connection connection = DatabaseConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement(query)) {
@@ -118,7 +111,7 @@ public class BookServiceImpl implements BookService {
     // Méthode pour récupérer tous les livres disponibles
     @Override
     public void displayAvailableBooks() {
-        String query = "SELECT * FROM book WHERE numberofcopies > 0";
+        String query = "SELECT * FROM book WHERE number_of_copies > 0";
 
         try (Connection connection = DatabaseConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement(query);
@@ -138,12 +131,12 @@ public class BookServiceImpl implements BookService {
     // Méthode pour vérifier la disponibilité d'un livre
     @Override
     public boolean isAvailable(Book book) {
-        String query = "SELECT numberofcopies FROM book WHERE id = ?";
+        String query = "SELECT number_of_copies FROM book WHERE book_id = ?";
 
         try (Connection connection = DatabaseConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement(query)) {
 
-            statement.setInt(1, book.getId());
+            statement.setInt(1, book.getBookId());
             ResultSet resultSet = statement.executeQuery();
 
             if (resultSet.next()) {
@@ -162,7 +155,7 @@ public class BookServiceImpl implements BookService {
     @Override
     public List<Book> searchByTitle(String title) {
         List<Book> books = new ArrayList<>();
-        String query = "SELECT * FROM book WHERE title LIKE ?";
+        String query = "SELECT * FROM book WHERE book_title LIKE ?";
 
         try (Connection connection = DatabaseConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement(query)) {
@@ -185,12 +178,13 @@ public class BookServiceImpl implements BookService {
     }
 
     // Méthode pour rechercher un livre par son auteur
+    // Méthode pour rechercher un livre par son auteur
     @Override
     public List<Book> searchByAuthor(String authorName) {
         List<Book> books = new ArrayList<>();
         String query = "SELECT b.* FROM book b " +
-                "JOIN book_author ba ON b.id = ba.bookid " +
-                "JOIN author a ON ba.authorid = a.id " +
+                "JOIN book_author ba ON b.book_id = ba.book_id " + // jointure corrigée
+                "JOIN author a ON ba.author_id = a.author_id " + // jointure corrigée
                 "WHERE a.name LIKE ?";
 
         try (Connection connection = DatabaseConnection.getConnection();
@@ -218,8 +212,8 @@ public class BookServiceImpl implements BookService {
     public List<Book> searchByCategory(String category) {
         List<Book> books = new ArrayList<>();
         String query = "SELECT b.* FROM book b " +
-                "JOIN books_category bc ON b.id = bc.bookid " +
-                "JOIN category c ON bc.categoryid = c.id " +
+                "JOIN books_category bc ON b.book_id = bc.book_id " + // jointure corrigée
+                "JOIN category c ON bc.category_id = c.category_id " + // jointure corrigée
                 "WHERE c.name LIKE ?";
 
         try (Connection connection = DatabaseConnection.getConnection();
@@ -227,7 +221,6 @@ public class BookServiceImpl implements BookService {
 
             statement.setString(1, "%" + category + "%");
             ResultSet resultSet = statement.executeQuery();
-
 
             while (resultSet.next()) {
                 int id = resultSet.getInt("id");
@@ -243,20 +236,21 @@ public class BookServiceImpl implements BookService {
         return books;
     }
 
+
+    // Méthode pour rechercher un livre par des mots-clés
     @Override
     public List<Book> searchByKeywords(String keywords) {
         List<Book> books = new ArrayList<>();
         String query = "SELECT b.* FROM book b " +
-                "JOIN book_author ba ON b.id = ba.bookid " +
-                "JOIN author a ON ba.authorid = a.id " +
-                "JOIN books_category bc ON b.id = bc.bookid " +
-                "JOIN category c ON bc.categoryid = c.id " +
-                "WHERE b.title LIKE ? OR a.name LIKE ? OR c.name LIKE ?";
+                "JOIN book_author ba ON b.book_id = ba.book_id " + // jointure corrigée
+                "JOIN author a ON ba.author_id = a.author_id " + // jointure corrigée
+                "JOIN books_category bc ON b.book_id = bc.book_id " + // jointure corrigée
+                "JOIN category c ON bc.category_id = c.category_id " + // jointure corrigée
+                "WHERE b.book_title LIKE ? OR a.name LIKE ? OR c.name LIKE ?";
 
         try (Connection connection = DatabaseConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement(query)) {
 
-            // Utilisation des mots-clés pour rechercher dans le titre, l'auteur ou la catégorie
             String searchPattern = "%" + keywords + "%";
             statement.setString(1, searchPattern);
             statement.setString(2, searchPattern);
@@ -277,4 +271,5 @@ public class BookServiceImpl implements BookService {
 
         return books;
     }
+
 }

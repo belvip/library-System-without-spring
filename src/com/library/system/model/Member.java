@@ -5,7 +5,7 @@ import java.util.regex.Pattern;
 
 public class Member {
 
-    private int id;
+    private int memberId;
     private String firstName;
     private String lastName;
     private String email;
@@ -21,11 +21,11 @@ public class Member {
     }
 
     // Validation pour l'ID
-    public void setId(int id) {
-        if (id <= 0) {
+    public void setId(int memberId) {
+        if (memberId <= 0) {
             throw new IllegalArgumentException("L'ID doit être strictement positif.");
         }
-        this.id = id;
+        this.memberId = memberId;
     }
 
     // Validation pour le prénom
@@ -63,7 +63,7 @@ public class Member {
 
     // Getters
     public int getId() {
-        return id;
+        return memberId;
     }
 
     public String getFirstName() {
@@ -86,7 +86,7 @@ public class Member {
     @Override
     public String toString() {
         return "Member{" +
-                "id=" + id +
+                "id=" + memberId +
                 ", firstName='" + firstName + '\'' +
                 ", lastName='" + lastName + '\'' +
                 ", email='" + email + '\'' +

@@ -4,7 +4,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class Book {
-    private int id;  // ID généré par la base de données
+    private int bookId;  // ID généré par la base de données
     private String title;
     private int numberOfCopies;
 
@@ -27,19 +27,19 @@ public class Book {
     }
 
     // Constructeur avec ID (utile si vous avez besoin de définir l'ID après)
-    public Book(int id, String title, int numberOfCopies) {
-        this.id = id;
+    public Book(int bookId, String title, int numberOfCopies) {
+        this.bookId = bookId;
         setTitle(title);
         setNumberOfCopies(numberOfCopies);
     }
 
     // Getters et Setters
-    public int getId() {
-        return id;
+    public int getBookId() {
+        return bookId;
     }
 
-    public void setId(int id) {
-        this.id = id;
+    public void setBookId(int bookId) {
+        this.bookId = bookId;
     }
 
     public String getTitle() {
@@ -97,7 +97,7 @@ public class Book {
     @Override
     public String toString() {
         return "Book{" +
-                "id=" + id +
+                "id=" + bookId +
                 ", title='" + title + '\'' +
                 ", numberOfCopies=" + numberOfCopies +
                 '}';

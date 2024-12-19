@@ -9,7 +9,7 @@ import java.util.Set;
 public class DatabaseConnection {
 
     // URL de la base de données PostgreSQL
-    private static final String URL = "jdbc:postgresql://localhost:5432/library_system";
+    private static final String URL = "jdbc:postgresql://localhost:5432/library_db";
     private static final String USER = "postgres";
     private static final String PASSWORD = "belvi";
 
@@ -21,8 +21,8 @@ public class DatabaseConnection {
 
             // Retourner la connexion à la base de données
             return DriverManager.getConnection(URL, USER, PASSWORD);
-        } catch (ClassNotFoundException e) {
-            throw new SQLException("PostgreSQL JDBC Driver is missing", e);
+        } catch (SQLException | ClassNotFoundException e) {
+            throw new RuntimeException("Erreur lors de la connexion à la base de données", e);
         }
 
     }

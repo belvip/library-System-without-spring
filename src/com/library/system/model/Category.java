@@ -1,46 +1,46 @@
 package com.library.system.model;
 
 public class Category {
-    private int id;
-    private String name;
+    private int categoryId;
+    private String category_name;
 
     // Constructeur par défaut
     public Category() {}
 
     // Constructeur avec paramètres
-    public Category(int id, String name) {
-        this.id = id;
+    public Category(int categoryId, String name) {
+        this.categoryId = categoryId;
         setName(name); // Validation ajoutée ici
     }
 
     // Getters et Setters
-    public int getId() {
-        return id;
+    public int getCategoryId() {
+        return categoryId;
     }
 
-    public void setId(int id) {
-        this.id = id;
+    public void setId(int categoryId) {
+        this.categoryId = categoryId;
     }
 
     public String getName() {
-        return name;
+        return category_name;
     }
 
-    public void setName(String name) {
-        if (name == null || name.trim().isEmpty()) {
+    public void setName(String category_name) {
+        if (category_name == null || category_name.trim().isEmpty()) {
             throw new IllegalArgumentException("Le nom de la catégorie ne peut pas être vide.");
         }
 
-        if (name.length() > 50) {
+        if (category_name.length() > 50) {
             throw new IllegalArgumentException("Le nom de la catégorie ne peut pas dépasser 50 caractères.");
         }
 
         // Regex pour vérifier que le nom de la catégorie contient uniquement des lettres et des espaces
-        if (!name.matches("[a-zA-Z\\s]+")) {
+        if (!category_name.matches("[a-zA-Z ]+")) {
             throw new IllegalArgumentException("Le nom de la catégorie ne peut contenir que des lettres et des espaces.");
         }
 
-        this.name = name;
+        this.category_name = category_name;
     }
 
 }

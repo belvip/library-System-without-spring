@@ -9,38 +9,80 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class AuthorDAOImpl implements AuthorDAO {
+    private final Connection connection;
+
+    // Constructeur pour injecter la connexion
+    public AuthorDAOImpl(Connection connection) {
+        this.connection = connection;
+    }
 
     @Override
-    public Author getOrCreateAuthor(String authorName, Connection connection) {
-        // Vérifier si l'auteur existe déjà
-        String checkQuery = "SELECT id, firstname FROM author WHERE firstname = ?";
-        try (PreparedStatement checkStmt = connection.prepareStatement(checkQuery)) {
-            checkStmt.setString(1, authorName); // Assurez-vous que c'est authorName et non name
-            ResultSet rs = checkStmt.executeQuery();
+    public Author getOrCreateAuthor(String firstName, String lastName, String email) throws SQLException {
+        // Requête SELECT pour vérifier si l'auteur existe déjà par email
+        String selectQuery = "SELECT * FROM author WHERE email = ?";
 
+        // Requête INSERT pour ajouter un auteur si nécessaire
+        String insertQuery = "INSERT INTO author (first_name, last_name, email) VALUES (?, ?, ?) RETURNING author_id, first_name, last_name, email";
+
+        try (PreparedStatement selectStmt = connection.prepareStatement(selectQuery)) {
+            selectStmt.setString(1, email);
+            ResultSet rs = selectStmt.executeQuery();
+
+            // Si l'auteur existe déjà, le récupérer
             if (rs.next()) {
-                // Si l'auteur existe déjà, retourner l'objet Author avec l'ID et le prénom
-                return new Author(rs.getInt("id"), rs.getString("firstname"), "", "");
+                return new Author(
+                        rs.getInt("author_id"),  // Correction du nom de la colonne
+                        rs.getString("first_name"),  // Utilisation de first_name
+                        rs.getString("last_name"),  // Utilisation de last_name
+                        rs.getString("email")
+                );
+            } else {
+                // Si l'auteur n'existe pas, on l'insère
+                try (PreparedStatement insertStmt = connection.prepareStatement(insertQuery)) {
+                    insertStmt.setString(1, firstName);
+                    insertStmt.setString(2, lastName);
+                    insertStmt.setString(3, email);
+                    ResultSet insertRs = insertStmt.executeQuery();
+
+                    // Récupérer les données de l'auteur inséré
+                    if (insertRs.next()) {
+                        return new Author(
+                                insertRs.getInt("author_id"),  // Correction du nom de la colonne
+                                insertRs.getString("first_name"),
+                                insertRs.getString("last_name"),
+                                insertRs.getString("email")
+                        );
+                    }
+                }
             }
-        } catch (SQLException e) {
-            e.printStackTrace(); // Gérer les erreurs SQL
         }
-
-        // Si l'auteur n'existe pas, l'insérer dans la base de données
-        String insertQuery = "INSERT INTO author (firstname) VALUES (?) RETURNING id";
-        try (PreparedStatement insertStmt = connection.prepareStatement(insertQuery)) {
-            insertStmt.setString(1, authorName); // Assurez-vous que c'est authorName et non name
-            ResultSet rs = insertStmt.executeQuery();
-
-            if (rs.next()) {
-                // Retourner l'ID nouvellement créé et le prénom de l'auteur
-                return new Author(rs.getInt("id"), authorName, "", "");  // Utilisez des valeurs par défaut
-            }
-        } catch (SQLException e) {
-            e.printStackTrace(); // Gérer les erreurs SQL
-        }
-
-        return null; // Retourner null si une erreur se produit ou l'auteur n'est pas trouvé/créé
+        throw new SQLException("Erreur lors de la récupération ou de la création de l'auteur.");
     }
+
+    @Override
+    public Author findByEmail(String email) {
+        return null;
+    }
+
+    @Override
+    public Author save(Author author) throws SQLException {
+        // Requête pour insérer un auteur dans la base de données
+        String insertQuery = "INSERT INTO author (first_name, last_name, email) VALUES (?, ?, ?) RETURNING author_id";
+
+        try (PreparedStatement insertStmt = connection.prepareStatement(insertQuery)) {
+            insertStmt.setString(1, author.getFirstName());
+            insertStmt.setString(2, author.getLastName());
+            insertStmt.setString(3, author.getEmail());
+
+            // Exécuter la requête d'insertion et récupérer l'ID
+            ResultSet resultSet = insertStmt.executeQuery();
+            if (resultSet.next()) {
+                // Mettre à jour l'objet Author avec l'ID généré
+                author.setAuthorId(resultSet.getInt("author_id"));
+            }
+        }
+        return author;  // Retourner l'auteur avec son ID
+    }
+
 
 }

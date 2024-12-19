@@ -12,16 +12,22 @@ import com.library.system.service.BookService;
 import com.library.system.service.impl.BookServiceImpl;
 import com.library.system.model.Book;
 
+import java.sql.Connection;
 import java.util.Scanner;
 
 public class BookController {
     private final BookService bookService;
 
-    // Utilisez une classe concrète qui implémente BookDAO
-    BookDAO bookDAO = new BookDAOImpl();  // Exemple : BookDAOImpl, ou toute autre classe concrète
-    AuthorDAO authorDAO = new AuthorDAOImpl();  // Assurez-vous d'avoir une implémentation concrète
-    CategoryDAO categoryDAO = new CategoryDAOImpl();
-    BooksCategoryDAO booksCategoryDAO = new BooksCategoryDAOImpl();
+    public BookController(Connection connection) {
+        // Créez les instances nécessaires pour BookServiceImpl
+        AuthorDAO authorDAO = new AuthorDAOImpl(connection);  // Créez l'instance de AuthorDAO
+        BookDAO bookDAO = new BookDAOImpl(connection, authorDAO);  // Passez AuthorDAO au constructeur de BookDAOImpl
+        CategoryDAO categoryDAO = new CategoryDAOImpl(connection);
+        BooksCategoryDAO booksCategoryDAO = new BooksCategoryDAOImpl(connection);
+        // Passez ces instances au constructeur de BookServiceImpl
+        this.bookService = new BookServiceImpl(bookDAO, authorDAO, categoryDAO, booksCategoryDAO);
+    }
+
 
     // Constructeur
     public BookController(BookDAO bookDAO, AuthorDAO authorDAO, CategoryDAO categoryDAO, BooksCategoryDAO booksCategoryDAO) {
